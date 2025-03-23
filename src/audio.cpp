@@ -30,6 +30,7 @@ static FILE *song = nullptr;
 static int lagConfig = 0;
 static int songWait = 0;
 static int songOffset = 0;
+const int magicNumber = 88344;
 
 static mm_word audioCallback(mm_word length, mm_addr dest, mm_stream_formats format)
 {
@@ -76,6 +77,21 @@ void playSong(std::string &name)
     {
         if ((songWait = lagConfig) < 0)
             fseek(song, -lagConfig, SEEK_SET);
+        mmStreamOpen(&stream);
+    }
+}
+
+void playPreview(std::string &name, int &db_offset)
+{
+    // Reset the PCM stream
+    if (song) fclose(song);
+    songOffset = db_offset * magicNumber;
+
+    // Open and play a PCM file if it exists, skipping ahead if early
+    if ((song = fopen(name.c_str(), "rb")))
+    {
+        // if ((songWait = lagConfig) < 0)
+        fseek(song, songOffset, SEEK_SET);
         mmStreamOpen(&stream);
     }
 }
